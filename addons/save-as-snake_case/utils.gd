@@ -1,9 +1,20 @@
+tool
+extends Resource
 
 #=================== EditorFileDialog Utils ================
 # todo: find a better way.
 static func editor_file_dialog_get_line_edit(node:EditorFileDialog):
 	return find_node_by_class_path(node, ['VBoxContainer', 'HSplitContainer', 'VBoxContainer', 'HBoxContainer', 'LineEdit'])
 
+#=================== ScriptDialog Utils ================
+static func get_script_dialog_lineedit(plugin:EditorPlugin):
+	return find_node_by_class_path(
+		plugin.get_script_create_dialog(),
+		['HBoxContainer',
+		'VBoxContainer',
+		'GridContainer',
+		'HBoxContainer',
+		'LineEdit'])
 
 #=================== Node Utils ================
 
@@ -54,31 +65,20 @@ static func find_node_by_class_path(node:Node, class_path:Array)->Node:
 
 	return res
 
+
 #=================== String Utils ================
-static func pascal2snake(string:String)->String:
-	var result = PoolStringArray()
-	var recent_is_digit = false
-	var recent_is_upper = false
-	for ch in string:
-		ch = ch as String
+var upseq_up_low:RegEx
+var low_up:RegEx
 
-		if ch.is_valid_integer():
-			recent_is_digit = true
-			recent_is_upper = false
-			result.append(ch)
+func _init():
+	upseq_up_low = RegEx.new()
+	upseq_up_low.compile("([A-Z]+)([A-Z][a-z])")
 
-		else:
-			var lower = ch.to_lower()
-			var is_upper = !ch==lower
-			recent_is_upper = is_upper
+	low_up = RegEx.new()
+	low_up.compile('([a-z])([A-Z])')	
 
-			if recent_is_digit or recent_is_upper:
-				result.append(lower)
-			elif is_upper:
-				result.append('_'+ch.to_lower())
-			else:
-				result.append(ch)
 
-			recent_is_digit = false
-			
-	return result.join('')
+func to_snake(name:String, replace_spaces:=true):
+	name =  upseq_up_low.sub(name, '$1_$2')
+	name =  low_up.sub(name, '$1_$2').to_lower()
+	return name.replace(' ', '_') if replace_spaces else name
