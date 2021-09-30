@@ -57,21 +57,28 @@ static func find_node_by_class_path(node:Node, class_path:Array)->Node:
 #=================== String Utils ================
 static func pascal2snake(string:String)->String:
 	var result = PoolStringArray()
-	var recent_is_digit = true
+	var recent_is_digit = false
+	var recent_is_upper = false
 	for ch in string:
 		ch = ch as String
 
 		if ch.is_valid_integer():
 			recent_is_digit = true
+			recent_is_upper = false
 			result.append(ch)
-		else:
-			if recent_is_digit:
-				result.append(ch.to_lower())
-			elif ch == ch.to_lower():
-				result.append(ch)
-			else:
-				result.append('_'+ch.to_lower())
-			
-			recent_is_digit = false
 
+		else:
+			var lower = ch.to_lower()
+			var is_upper = !ch==lower
+			recent_is_upper = is_upper
+
+			if recent_is_digit or recent_is_upper:
+				result.append(lower)
+			elif is_upper:
+				result.append('_'+ch.to_lower())
+			else:
+				result.append(ch)
+
+			recent_is_digit = false
+			
 	return result.join('')
